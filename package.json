@@ -1,0 +1,13 @@
+{
+  "name": "cheat-x",
+  "version": "1.0.0",
+  "description": "Stealth AI assistant for interviews — invisible to screen recording",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "devDependencies": {
+    "electron": "^31.0.1"
+  }
+}

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP: only allow scripts/styles from same origin, no inline eval -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>Cheat-X</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- ── Toolbar ───────────────────────────────────────────────── -->
+    <header id="toolbar">
+      <div class="toolbar-left">
+        <span class="logo">Cheat<span class="logo-x">X</span></span>
+      </div>
+
+      <!-- AI selector tabs -->
+      <nav class="ai-tabs" id="ai-tabs" role="tablist" aria-label="AI provider">
+        <button
+          class="tab active"
+          data-ai="chatgpt"
+          role="tab"
+          aria-selected="true"
+        >
+          ChatGPT
+        </button>
+        <button class="tab" data-ai="grok" role="tab" aria-selected="false">
+          Grok
+        </button>
+        <button class="tab" data-ai="claude" role="tab" aria-selected="false">
+          Claude
+        </button>
+        <button class="tab" data-ai="gemini" role="tab" aria-selected="false">
+          Gemini
+        </button>
+      </nav>
+
+      <div class="toolbar-right">
+        <!-- Opacity control -->
+        <div class="opacity-control" title="Adjust window opacity">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 13 13"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle
+              cx="6.5"
+              cy="6.5"
+              r="5.5"
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-dasharray="3 2"
+            />
+          </svg>
+          <input
+            type="range"
+            id="opacity-slider"
+            min="20"
+            max="100"
+            value="100"
+            step="1"
+            aria-label="Window opacity"
+          />
+          <span id="opacity-label" aria-live="polite">100%</span>
+        </div>
+
+        <!-- Shortcut hints -->
+        <div class="shortcuts-hint" aria-label="Keyboard shortcuts">
+          <kbd>⌃⇧Space</kbd> hide &nbsp;·&nbsp; <kbd>⌃⇧V</kbd> paste
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Webview area ──────────────────────────────────────────── -->
+    <main id="webview-wrap">
+      <webview
+        id="ai-webview"
+        src="https://chatgpt.com"
+        partition="persist:cheatx"
+        allowpopups
+        useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+      ></webview>
+
+      <!-- Shown while webview is navigating -->
+      <div id="loading-overlay" role="status" aria-label="Loading">
+        <div class="spinner"></div>
+      </div>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
