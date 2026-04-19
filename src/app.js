@@ -1,101 +1,238 @@
 "use strict";
 
+/**
+ * @fileoverview Renderer process for Cheat-X.
+ * Settings replaces the chat area entirely (full height swap).
+ * Each AI model has its own toggle — all on by default.
+ * Tabs hide via max-width transition — no layout jump.
+ */
+
+/** @type {Record<string, string>} */
 const AI_URLS = {
   chatgpt: "https://chatgpt.com",
-  grok: "https://grok.com",
-  claude: "https://claude.ai",
-  gemini: "https://gemini.google.com",
+  claude:  "https://claude.ai",
+  gemini:  "https://gemini.google.com",
+  grok:    "https://grok.com",
 };
 
 // ── Element refs ──────────────────────────────────────────────────────────────
 
-const webview = /** @type {Electron.WebviewTag} */ (
-  document.getElementById("ai-webview")
-);
-const loadingOverlay = /** @type {HTMLElement} */ (
-  document.getElementById("loading-overlay")
-);
-const opacitySlider = /** @type {HTMLInputElement} */ (
-  document.getElementById("opacity-slider")
-);
-const opacityLabel = /** @type {HTMLElement} */ (
-  document.getElementById("opacity-label")
-);
-const aiTabs = /** @type {HTMLElement} */ (document.getElementById("ai-tabs"));
+const webview        = /** @type {Electron.WebviewTag} */ (document.getElementById("ai-webview"));
+const loadingOverlay = /** @type {HTMLElement} */         (document.getElementById("loading-overlay"));
+const aiTabs         = /** @type {HTMLElement} */         (document.getElementById("ai-tabs"));
+const chatBox        = /** @type {HTMLElement} */         (document.getElementById("chat-box"));
+const btnCollapse    = /** @type {HTMLButtonElement} */   (document.getElementById("btn-collapse"));
+const btnSettings    = /** @type {HTMLButtonElement} */   (document.getElementById("btn-settings"));
+const btnClose       = /** @type {HTMLButtonElement} */   (document.getElementById("btn-close"));
+const btnDrag        = /** @type {HTMLButtonElement} */   (document.getElementById("btn-drag"));
+const settingsPanel  = /** @type {HTMLElement} */         (document.getElementById("settings-panel"));
+const opacitySlider  = /** @type {HTMLInputElement} */    (document.getElementById("opacity-slider"));
+const opacityLabel   = /** @type {HTMLElement} */         (document.getElementById("opacity-label"));
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
-let currentAI = "chatgpt";
+let currentAI     = "chatgpt";
+let chatCollapsed = false;
+let settingsOpen  = false;
 
-// ── Loading overlay ───────────────────────────────────────────────────────────
+/** @type {Set<string>} which models are enabled */
+const enabledModels = new Set(["chatgpt", "claude", "gemini", "grok"]);
 
-function showLoading() {
-  loadingOverlay.classList.remove("hidden");
-}
+// ── Loading ───────────────────────────────────────────────────────────────────
 
-function hideLoading() {
-  loadingOverlay.classList.add("hidden");
-}
+function showLoading() { loadingOverlay.classList.remove("hidden"); }
+function hideLoading()  { loadingOverlay.classList.add("hidden"); }
 
-// Hide overlay once the page finishes loading (or fails — don't block UI)
 webview.addEventListener("did-finish-load", hideLoading);
-webview.addEventListener("did-fail-load", hideLoading);
+webview.addEventListener("did-fail-load",   hideLoading);
 
 // ── AI tab switching ──────────────────────────────────────────────────────────
 
 /**
  * Switches the active AI provider.
- * No-ops if the same AI is already active.
- * @param {string} ai - Key from AI_URLS
+ * @param {string} ai
  */
 function switchAI(ai) {
   if (ai === currentAI || !AI_URLS[ai]) return;
   currentAI = ai;
 
-  // Update tab active state + aria attributes
-  aiTabs.querySelectorAll(".tab").forEach((tab) => {
-    const isActive = tab.dataset.ai === ai;
-    tab.classList.toggle("active", isActive);
-    tab.setAttribute("aria-selected", String(isActive));
+  aiTabs.querySelectorAll(".pill-tab").forEach((tab) => {
+    const active = tab.dataset.ai === ai;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", String(active));
   });
 
   showLoading();
   webview.src = AI_URLS[ai];
 }
 
-// Single delegated listener on the nav — no per-button listeners
 aiTabs.addEventListener("click", (e) => {
-  const tab = /** @type {HTMLElement} */ (e.target).closest(".tab");
-  if (tab && tab.dataset.ai) switchAI(tab.dataset.ai);
+  const tab = /** @type {HTMLElement} */ (e.target).closest(".pill-tab");
+  if (tab?.dataset.ai) switchAI(tab.dataset.ai);
 });
 
-// ── Opacity control ───────────────────────────────────────────────────────────
+// ── Per-model visibility toggles ──────────────────────────────────────────────
 
 /**
- * Applies opacity to the window body.
- * Min 20% so the window is never fully invisible (user could lose it).
- * @param {number} value - Integer 20–100
+ * Syncs pill tab visibility with the enabledModels set.
+ * Uses max-width transition — no layout jump.
  */
+function syncModelTabs() {
+  aiTabs.querySelectorAll(".pill-tab").forEach((tab) => {
+    const ai = tab.dataset.ai;
+    const visible = enabledModels.has(ai);
+    tab.classList.toggle("hidden", !visible);
+  });
+
+  // If current AI was disabled, switch to first enabled one
+  if (!enabledModels.has(currentAI)) {
+    const first = [...enabledModels][0];
+    if (first) switchAI(first);
+  }
+}
+
+// Wire up each model toggle in settings
+document.querySelectorAll(".model-toggle").forEach((input) => {
+  const el = /** @type {HTMLInputElement} */ (input);
+  const ai = el.dataset.ai;
+
+  el.addEventListener("change", () => {
+    if (el.checked) {
+      enabledModels.add(ai);
+    } else {
+      // Don't allow disabling the last enabled model
+      if (enabledModels.size <= 1) {
+        el.checked = true;
+        return;
+      }
+      enabledModels.delete(ai);
+    }
+    syncModelTabs();
+  });
+});
+
+// ── Settings panel — full area swap ──────────────────────────────────────────
+
+/**
+ * Opens or closes settings, swapping it with the chat box.
+ * @param {boolean} [force]
+ */
+function toggleSettings(force) {
+  settingsOpen = force !== undefined ? force : !settingsOpen;
+
+  // Chat fades behind, settings fades in — both in same container
+  chatBox.classList.toggle("behind", settingsOpen);
+  if (settingsOpen) {
+    settingsPanel.removeAttribute("hidden");
+  } else {
+    // Wait for fade-out before hiding
+    settingsPanel.addEventListener("transitionend", () => {
+      if (!settingsOpen) settingsPanel.setAttribute("hidden", "");
+    }, { once: true });
+  }
+
+  btnSettings.classList.toggle("active", settingsOpen);
+  btnSettings.setAttribute("aria-expanded", String(settingsOpen));
+}
+
+btnSettings.addEventListener("click", () => toggleSettings());
+
+// Settings tab switching
+settingsPanel.querySelectorAll(".stab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const target = /** @type {HTMLElement} */ (tab).dataset.tab;
+
+    settingsPanel.querySelectorAll(".stab").forEach((t) => {
+      t.classList.toggle("active", t === tab);
+      t.setAttribute("aria-selected", String(t === tab));
+    });
+
+    settingsPanel.querySelectorAll(".stab-panel").forEach((panel) => {
+      const el = /** @type {HTMLElement} */ (panel);
+      const match = el.id === `tab-${target}`;
+      if (match) el.removeAttribute("hidden");
+      else el.setAttribute("hidden", "");
+    });
+  });
+});
+
+// ── Collapse / expand ─────────────────────────────────────────────────────────
+
+function toggleCollapse() {
+  chatCollapsed = !chatCollapsed;
+  document.body.classList.toggle("chat-collapsed", chatCollapsed);
+  btnCollapse.setAttribute("aria-label", chatCollapsed ? "Expand chat" : "Collapse chat");
+}
+
+btnCollapse.addEventListener("click", toggleCollapse);
+
+// ── Opacity ───────────────────────────────────────────────────────────────────
+
+/** @param {number} value */
 function applyOpacity(value) {
-  const clamped = Math.min(100, Math.max(20, Math.round(value)));
-  document.body.style.opacity = String(clamped / 100);
-  opacityLabel.textContent = clamped + "%";
-  opacitySlider.value = String(clamped);
+  const v = Math.min(100, Math.max(20, Math.round(value)));
+  document.body.style.opacity = String(v / 100);
+  opacityLabel.textContent    = v + "%";
+  opacitySlider.value         = String(v);
 }
 
 opacitySlider.addEventListener("input", () => {
   applyOpacity(parseInt(opacitySlider.value, 10));
 });
 
-// ── Paste shortcut ────────────────────────────────────────────────────────────
+// ── Close ─────────────────────────────────────────────────────────────────────
 
-/**
- * Injects text into the active AI's chat input directly via the webview element.
- * Provides a brief visual flash as confirmation feedback to the user.
- * @param {string} text
- */
+btnClose.addEventListener("click", () => window.cheatX.quitApp());
+
+// ── Drag handle ───────────────────────────────────────────────────────────────
+
+(function initDrag() {
+  let dragging = false;
+
+  btnDrag.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    dragging = true;
+    btnDrag.setAttribute("aria-grabbed", "true");
+    window.cheatX.startDrag();
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (dragging) {
+      dragging = false;
+      btnDrag.setAttribute("aria-grabbed", "false");
+    }
+  });
+})();
+
+// ── Keyboard movement ─────────────────────────────────────────────────────────
+
+document.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey) return;
+
+  const STEP = 40;
+  let dx = 0, dy = 0;
+
+  switch (e.key) {
+    case "ArrowUp":    dy = -STEP; break;
+    case "ArrowDown":  dy = +STEP; break;
+    case "ArrowLeft":  dx = -STEP; break;
+    case "ArrowRight": dx = +STEP; break;
+    default: return;
+  }
+
+  e.preventDefault();
+
+  if (e.key === "ArrowDown" && !chatCollapsed) { toggleCollapse(); return; }
+  if (e.key === "ArrowUp"   &&  chatCollapsed) { toggleCollapse(); return; }
+
+  window.cheatX.moveWindow(dx, dy);
+});
+
+// ── Paste injection ───────────────────────────────────────────────────────────
+
+/** @param {string} text */
 function handlePaste(text) {
-  if (!text || !text.trim()) return;
+  if (!text?.trim()) return;
 
   const selectors = [
     'div[contenteditable="true"]',
@@ -103,31 +240,19 @@ function handlePaste(text) {
     '[role="textbox"]',
     "textarea",
     "div[data-placeholder]",
-    "p[data-placeholder]",
   ];
 
-  const innerScript = [
-    "(function(){",
-    "  var sels = " + JSON.stringify(selectors) + ";",
-    "  var txt  = " + JSON.stringify(text) + ";",
-    "  for (var i = 0; i < sels.length; i++) {",
-    "    var el = document.querySelector(sels[i]);",
-    "    if (!el) continue;",
-    "    el.focus();",
-    '    document.execCommand("selectAll", false, null);',
-    '    document.execCommand("insertText", false, txt);',
-    '    el.dispatchEvent(new Event("input", { bubbles: true }));',
-    "    return true;",
-    "  }",
-    "  return false;",
-    "})()"
-  ].join("\n");
+  const script = "(function(){var sels=" + JSON.stringify(selectors) +
+    ";var txt=" + JSON.stringify(text) +
+    ";for(var i=0;i<sels.length;i++){var el=document.querySelector(sels[i]);" +
+    "if(!el)continue;el.focus();" +
+    'document.execCommand("selectAll",false,null);' +
+    'document.execCommand("insertText",false,txt);' +
+    'el.dispatchEvent(new Event("input",{bubbles:true}));return;}})()';
 
-  webview.executeJavaScript(innerScript).catch(() => { });
+  webview.executeJavaScript(script).catch(() => {});
 
-  // Flash border as visual confirmation — remove class first to allow re-trigger
   document.body.classList.remove("paste-flash");
-  // Force reflow so animation restarts even if called rapidly
   void document.body.offsetWidth;
   document.body.classList.add("paste-flash");
   setTimeout(() => document.body.classList.remove("paste-flash"), 500);
@@ -137,5 +262,4 @@ window.cheatX.onPasteToChat(handlePaste);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
-// Show loading overlay on startup — webview begins loading immediately
 showLoading();

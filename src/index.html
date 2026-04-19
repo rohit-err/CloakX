@@ -3,95 +3,208 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- CSP: only allow scripts/styles from same origin, no inline eval -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: https://unpkg.com;"
     />
     <title>Cheat-X</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- ── Toolbar ───────────────────────────────────────────────── -->
-    <header id="toolbar">
-      <div class="toolbar-left">
-        <span class="logo">Cheat<span class="logo-x">X</span></span>
-      </div>
 
-      <!-- AI selector tabs -->
-      <nav class="ai-tabs" id="ai-tabs" role="tablist" aria-label="AI provider">
-        <button
-          class="tab active"
-          data-ai="chatgpt"
-          role="tab"
-          aria-selected="true"
-        >
-          ChatGPT
+    <!-- ── Pill bar ─────────────────────────────────────────────────────── -->
+    <div id="pill-bar" role="toolbar" aria-label="Controls">
+
+      <nav id="ai-tabs" role="tablist" aria-label="AI provider">
+        <button class="pill-tab active" data-ai="chatgpt" role="tab" aria-selected="true" title="ChatGPT">
+          <img class="ai-logo" src="https://unpkg.com/@lobehub/icons-static-png@latest/dark/openai.png" alt="ChatGPT" draggable="false" />
         </button>
-        <button class="tab" data-ai="grok" role="tab" aria-selected="false">
-          Grok
+        <button class="pill-tab" data-ai="claude" role="tab" aria-selected="false" title="Claude">
+          <img class="ai-logo" src="https://unpkg.com/@lobehub/icons-static-png@latest/dark/claude.png" alt="Claude" draggable="false" />
         </button>
-        <button class="tab" data-ai="claude" role="tab" aria-selected="false">
-          Claude
+        <button class="pill-tab" data-ai="gemini" role="tab" aria-selected="false" title="Gemini">
+          <img class="ai-logo" src="https://unpkg.com/@lobehub/icons-static-png@latest/dark/gemini.png" alt="Gemini" draggable="false" />
         </button>
-        <button class="tab" data-ai="gemini" role="tab" aria-selected="false">
-          Gemini
+        <button class="pill-tab" data-ai="grok" role="tab" aria-selected="false" title="Grok">
+          <img class="ai-logo" src="https://unpkg.com/@lobehub/icons-static-png@latest/dark/grok.png" alt="Grok" draggable="false" />
         </button>
       </nav>
 
-      <div class="toolbar-right">
-        <!-- Opacity control -->
-        <div class="opacity-control" title="Adjust window opacity">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 13 13"
-            fill="none"
-            aria-hidden="true"
-          >
-            <circle
-              cx="6.5"
-              cy="6.5"
-              r="5.5"
-              stroke="currentColor"
-              stroke-width="1"
-              stroke-dasharray="3 2"
-            />
-          </svg>
-          <input
-            type="range"
-            id="opacity-slider"
-            min="20"
-            max="100"
-            value="100"
-            step="1"
-            aria-label="Window opacity"
-          />
-          <span id="opacity-label" aria-live="polite">100%</span>
+      <div class="pill-divider" aria-hidden="true"></div>
+
+      <button id="btn-collapse" class="pill-btn" title="Toggle chat" aria-label="Toggle chat panel">
+        <svg id="icon-collapse" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      <div class="pill-divider" aria-hidden="true"></div>
+
+      <button id="btn-drag" class="pill-btn drag-handle" title="Drag to move" aria-label="Drag handle" aria-grabbed="false">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+          <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+          <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+        </svg>
+      </button>
+
+      <button id="btn-settings" class="pill-btn" title="Settings" aria-label="Toggle settings" aria-expanded="false">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+
+      <button id="btn-close" class="pill-btn pill-btn-close" title="Quit" aria-label="Quit application">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+    </div>
+
+    <!-- ── Main area: chat OR settings (mutually exclusive, full height) ── -->
+    <div id="main-area">
+
+      <!-- Chat box -->
+      <main id="chat-box" aria-label="AI chat">
+        <webview
+          id="ai-webview"
+          src="https://chatgpt.com"
+          partition="persist:cheatx"
+          allowpopups
+          useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        ></webview>
+        <div id="loading-overlay" role="status" aria-label="Loading">
+          <div class="spinner"></div>
+        </div>
+      </main>
+
+      <!-- Settings panel — shown instead of chat when open -->
+      <div id="settings-panel" aria-label="Settings" role="region" hidden>
+
+        <div class="stab-nav" role="tablist">
+          <button class="stab active" data-tab="models" role="tab" aria-selected="true">Models</button>
+          <button class="stab" data-tab="appearance" role="tab" aria-selected="false">Appearance</button>
+          <button class="stab" data-tab="shortcuts" role="tab" aria-selected="false">Shortcuts</button>
         </div>
 
-        <!-- Shortcut hints -->
-        <div class="shortcuts-hint" aria-label="Keyboard shortcuts">
-          <kbd>⌃⇧Space</kbd> hide &nbsp;·&nbsp; <kbd>⌃⇧V</kbd> paste
+        <!-- Tab: Models — individual toggle per AI -->
+        <div class="stab-panel" id="tab-models" role="tabpanel">
+
+          <div class="srow" data-ai="chatgpt">
+            <div class="srow-left">
+              <img class="srow-logo" src="https://unpkg.com/@lobehub/icons-static-png@latest/dark/openai.png" alt="" aria-hidden="true" />
+              <div class="srow-info">
+                <span class="srow-label">ChatGPT</span>
+                <span class="srow-desc">chatgpt.com</span>
+              </div>
+            </div>
+            <label class="toggle" aria-label="Show ChatGPT">
+              <input type="checkbox" class="model-toggle" data-ai="chatgpt" role="switch" checked />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <div class="srow" data-ai="claude">
+            <div class="srow-left">
+              <img class="srow-logo" src="https://unpkg.com/@lobehub/icons-static-png@latest/dark/claude.png" alt="" aria-hidden="true" />
+              <div class="srow-info">
+                <span class="srow-label">Claude</span>
+                <span class="srow-desc">claude.ai</span>
+              </div>
+            </div>
+            <label class="toggle" aria-label="Show Claude">
+              <input type="checkbox" class="model-toggle" data-ai="claude" role="switch" checked />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <div class="srow" data-ai="gemini">
+            <div class="srow-left">
+              <img class="srow-logo" src="https://unpkg.com/@lobehub/icons-static-png@latest/dark/gemini.png" alt="" aria-hidden="true" />
+              <div class="srow-info">
+                <span class="srow-label">Gemini</span>
+                <span class="srow-desc">gemini.google.com</span>
+              </div>
+            </div>
+            <label class="toggle" aria-label="Show Gemini">
+              <input type="checkbox" class="model-toggle" data-ai="gemini" role="switch" checked />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <div class="srow" data-ai="grok">
+            <div class="srow-left">
+              <img class="srow-logo" src="https://unpkg.com/@lobehub/icons-static-png@latest/dark/grok.png" alt="" aria-hidden="true" />
+              <div class="srow-info">
+                <span class="srow-label">Grok</span>
+                <span class="srow-desc">grok.com</span>
+              </div>
+            </div>
+            <label class="toggle" aria-label="Show Grok">
+              <input type="checkbox" class="model-toggle" data-ai="grok" role="switch" checked />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+
         </div>
-      </div>
-    </header>
 
-    <!-- ── Webview area ──────────────────────────────────────────── -->
-    <main id="webview-wrap">
-      <webview
-        id="ai-webview"
-        src="https://chatgpt.com"
-        partition="persist:cheatx"
-        allowpopups
-        useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-      ></webview>
+        <!-- Tab: Appearance -->
+        <div class="stab-panel" id="tab-appearance" role="tabpanel" hidden>
 
-      <!-- Shown while webview is navigating -->
-      <div id="loading-overlay" role="status" aria-label="Loading">
-        <div class="spinner"></div>
+          <div class="srow">
+            <div class="srow-info">
+              <span class="srow-label">Window opacity</span>
+              <span class="srow-desc">Adjust transparency</span>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" id="opacity-slider" min="20" max="100" value="100" step="1" aria-label="Window opacity" />
+              <span id="opacity-label" aria-live="polite">100%</span>
+            </div>
+          </div>
+
+          <div class="srow">
+            <div class="srow-info">
+              <span class="srow-label">Content protection</span>
+              <span class="srow-desc">Hide from screen recorders</span>
+            </div>
+            <label class="toggle" aria-label="Content protection">
+              <input type="checkbox" id="toggle-protection" role="switch" checked />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <div class="srow">
+            <div class="srow-info">
+              <span class="srow-label">Always on top</span>
+              <span class="srow-desc">Float above all windows</span>
+            </div>
+            <label class="toggle" aria-label="Always on top">
+              <input type="checkbox" id="toggle-ontop" role="switch" checked />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+
+        </div>
+
+        <!-- Tab: Shortcuts -->
+        <div class="stab-panel" id="tab-shortcuts" role="tabpanel" hidden>
+          <ul class="shortcut-list">
+            <li><div class="keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>Space</kbd></div><span>Show / hide window</span></li>
+            <li><div class="keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>V</kbd></div><span>Paste clipboard to chat</span></li>
+            <li><div class="keys"><kbd>Ctrl</kbd><kbd>↓</kbd></div><span>Collapse chat</span></li>
+            <li><div class="keys"><kbd>Ctrl</kbd><kbd>↑</kbd></div><span>Expand chat</span></li>
+            <li><div class="keys"><kbd>Ctrl</kbd><kbd>← →</kbd></div><span>Move window left / right</span></li>
+            <li><div class="keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>Q</kbd></div><span>Quit</span></li>
+          </ul>
+        </div>
+
       </div>
-    </main>
+      <!-- /settings-panel -->
+
+    </div>
+    <!-- /main-area -->
 
     <script src="app.js"></script>
   </body>
