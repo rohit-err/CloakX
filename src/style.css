@@ -1,37 +1,30 @@
 /* ── Reset ─────────────────────────────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Design tokens ─────────────────────────────────────────────────────── */
+/* ── Tokens ────────────────────────────────────────────────────────────── */
 :root {
-  --bg: #0d0d0f;
-  --surface: #18181c;
-  --surface-2: #222228;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-2: rgba(255, 255, 255, 0.12);
-  --text: #e8e8ea;
-  --text-muted: #6b6b78;
-  --text-dim: #3a3a44;
-  --accent: #7c6af5;
-  --accent-soft: rgba(124, 106, 245, 0.15);
-  --radius: 10px;
-  --toolbar-h: 44px;
+  --surface:     #141418;
+  --surface-2:   #1c1c22;
+  --surface-3:   #25252d;
+  --border:      rgba(255,255,255,0.06);
+  --border-2:    rgba(255,255,255,0.10);
+  --text:        #e4e4e7;
+  --text-muted:  #71717a;
+  --text-dim:    #3f3f46;
+  --accent:      #8b7ff5;
+  --accent-soft: rgba(139,127,245,0.12);
+  --radius:      14px;
+  --pill-h:      36px;
+  --shadow:      0 8px 32px rgba(0,0,0,0.45);
+  --ease:        cubic-bezier(0.4,0,0.2,1);
 }
 
 /* ── Base ──────────────────────────────────────────────────────────────── */
-html,
-body {
-  width: 100%;
-  height: 100%;
+html, body {
+  width: 100%; height: 100%;
   overflow: hidden;
   background: transparent;
-  font-family:
-    "SF Pro Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   font-size: 13px;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
@@ -40,117 +33,334 @@ body {
 body {
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-2);
-  /* overflow hidden to honour border-radius clipping */
-  overflow: hidden;
-}
-
-/* ── Toolbar ───────────────────────────────────────────────────────────── */
-#toolbar {
-  display: flex;
   align-items: center;
-  height: var(--toolbar-h);
-  padding: 0 12px 0 14px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  border-radius: var(--radius) var(--radius) 0 0;
-  flex-shrink: 0;
-  user-select: none;
-  /* Whole toolbar is draggable by default */
-  -webkit-app-region: drag;
+  gap: 8px;
+  padding: 10px;
 }
 
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  padding-right: 16px;
-}
-
-.logo {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  color: var(--text);
-}
-
-.logo-x {
-  color: var(--accent);
-}
-
-/* ── AI tabs ───────────────────────────────────────────────────────────── */
-.ai-tabs {
+/* ── Pill bar ──────────────────────────────────────────────────────────── */
+#pill-bar {
   display: flex;
   align-items: center;
   gap: 2px;
-  flex: 1;
-  /* Tabs must be clickable — override parent drag region */
+  height: var(--pill-h);
+  padding: 0 4px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: calc(var(--pill-h) / 2);
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+  user-select: none;
   -webkit-app-region: no-drag;
 }
 
-.tab {
+#ai-tabs {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 0 2px;
+  overflow: hidden;
+}
+
+/* Tabs hide via max-width — no layout jump */
+.pill-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 28px;
+  width: 28px;
   height: 28px;
-  padding: 0 14px;
-  border-radius: 6px;
+  border-radius: 50%;
   border: 1px solid transparent;
   background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 1;
+  transition: max-width 0.26s var(--ease), opacity 0.2s var(--ease), background 0.15s;
+}
+
+.pill-tab.hidden {
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pill-tab .ai-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.pill-tab:hover { background: var(--surface-2); }
+.pill-tab:hover .ai-logo { opacity: 0.9; }
+.pill-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pill-tab.active { background: var(--accent-soft); border-color: rgba(139,127,245,0.35); }
+.pill-tab.active .ai-logo { opacity: 1; }
+
+.pill-divider {
+  width: 1px; height: 16px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+.pill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
   color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.pill-btn:hover { background: var(--surface-2); color: var(--text); }
+.pill-btn:active { transform: scale(0.9); }
+.pill-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pill-btn.active { background: var(--accent-soft); color: var(--accent); }
+.pill-btn-close:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+.drag-handle { cursor: grab; -webkit-app-region: drag; }
+.drag-handle:active { cursor: grabbing; }
+
+#icon-collapse { transition: transform 0.28s var(--ease); }
+body.chat-collapsed #icon-collapse { transform: rotate(180deg); }
+
+/* ── Main area — fills remaining space ─────────────────────────────────── */
+#main-area {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  position: relative;
+}
+
+/* ── Chat box ──────────────────────────────────────────────────────────── */
+#chat-box {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.22s var(--ease), transform 0.22s var(--ease);
+}
+
+/* Chat hidden when settings open */
+#chat-box.behind {
+  opacity: 0;
+  transform: scale(0.98);
+  pointer-events: none;
+}
+
+/* Chat collapsed (pill only mode) */
+body.chat-collapsed #main-area { display: none; }
+
+#ai-webview {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  border: none;
+  border-radius: var(--radius);
+}
+
+#loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border-radius: var(--radius);
+  z-index: 10;
+  transition: opacity 0.25s ease;
+}
+
+#loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+.spinner {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border-2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Settings panel — overlays chat, full height ───────────────────────── */
+#settings-panel {
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: scale(0.98) translateY(6px);
+  transition: opacity 0.22s var(--ease), transform 0.22s var(--ease);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#settings-panel:not([hidden]) {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: all;
+}
+
+/* Tab nav */
+.stab-nav {
+  display: flex;
+  gap: 0;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.stab {
+  padding: 10px 14px;
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
-  white-space: nowrap;
-  transition:
-    color 0.15s,
-    background 0.15s,
-    border-color 0.15s;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
 }
 
-.tab:hover {
-  color: var(--text);
-  background: var(--surface-2);
-}
-.tab:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+.stab:hover { color: var(--text); }
+.stab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.stab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+/* Tab panels */
+.stab-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
 }
 
-.tab.active {
-  color: var(--text);
-  background: var(--accent-soft);
-  border-color: rgba(124, 106, 245, 0.3);
-}
+.stab-panel[hidden] { display: none; }
 
-/* ── Toolbar right ─────────────────────────────────────────────────────── */
-.toolbar-right {
+/* Setting row */
+.srow {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+
+.srow:last-child { border-bottom: none; }
+.srow:hover { background: rgba(255,255,255,0.02); }
+
+/* Left side with logo + text */
+.srow-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.srow-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  object-fit: contain;
   flex-shrink: 0;
-  -webkit-app-region: no-drag;
+  opacity: 0.85;
 }
 
-/* Opacity control */
-.opacity-control {
+.srow-info {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.srow-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.srow-desc {
+  font-size: 11px;
   color: var(--text-muted);
 }
 
-.opacity-control svg {
+/* Toggle */
+.toggle {
+  position: relative;
   flex-shrink: 0;
-  opacity: 0.5;
+  cursor: pointer;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+}
+
+.toggle-track {
+  display: block;
+  width: 38px; height: 21px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  border-radius: 11px;
+  position: relative;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 15px; height: 15px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: left 0.2s var(--ease), background 0.2s;
+}
+
+.toggle input:checked + .toggle-track { background: var(--accent); border-color: var(--accent); }
+.toggle input:checked + .toggle-track .toggle-thumb { left: 19px; background: #fff; }
+.toggle input:focus-visible + .toggle-track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Opacity slider */
+.slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 #opacity-slider {
   -webkit-appearance: none;
   appearance: none;
-  width: 72px;
-  height: 3px;
+  width: 100px; height: 4px;
   border-radius: 2px;
-  background: var(--surface-2);
+  background: var(--surface-3);
   outline: none;
   cursor: pointer;
   border: none;
@@ -158,113 +368,69 @@ body {
 
 #opacity-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 13px;
-  height: 13px;
+  width: 15px; height: 15px;
   border-radius: 50%;
   background: var(--accent);
   cursor: pointer;
   border: 2px solid var(--surface);
-  transition: transform 0.1s;
+  transition: transform 0.15s;
 }
 
-#opacity-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
-
-#opacity-slider:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
+#opacity-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
 
 #opacity-label {
-  font-size: 11px;
-  color: var(--text-dim);
-  min-width: 30px;
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 34px;
   text-align: right;
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
 }
 
-/* Shortcut hints */
-.shortcuts-hint {
-  font-size: 11px;
-  color: var(--text-dim);
-  white-space: nowrap;
+/* Shortcut list */
+.shortcut-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
 }
 
-kbd {
-  font-family: inherit;
-  font-size: 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border-2);
-  border-radius: 4px;
-  padding: 1px 5px;
+.shortcut-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
   color: var(--text-muted);
 }
 
-/* ── Webview wrapper ───────────────────────────────────────────────────── */
-#webview-wrap {
-  position: relative;
-  flex: 1;
-  /* min-height: 0 prevents flex children from overflowing */
-  min-height: 0;
-  overflow: hidden;
-  border-radius: 0 0 var(--radius) var(--radius);
-  background: var(--bg);
+.shortcut-list li:last-child { border-bottom: none; }
+
+.keys { display: flex; gap: 3px; flex-shrink: 0; }
+
+.shortcut-list kbd {
+  font-family: inherit;
+  font-size: 10px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
-#ai-webview {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: flex;
-}
+.shortcut-list span { flex: 1; }
 
-/* ── Loading overlay ───────────────────────────────────────────────────── */
-#loading-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  z-index: 10;
-  /* Fade out instead of snapping away */
-  transition: opacity 0.25s ease;
-}
+/* Scrollbar */
+.stab-panel::-webkit-scrollbar { width: 4px; }
+.stab-panel::-webkit-scrollbar-track { background: transparent; }
+.stab-panel::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 2px; }
 
-#loading-overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.spinner {
-  width: 22px;
-  height: 22px;
-  border: 2px solid var(--border-2);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ── Paste flash feedback ──────────────────────────────────────────────── */
+/* ── Paste flash ───────────────────────────────────────────────────────── */
 @keyframes flash {
-  0% {
-    box-shadow: inset 0 0 0 2px rgba(124, 106, 245, 0.7);
-  }
-  100% {
-    box-shadow: inset 0 0 0 2px rgba(124, 106, 245, 0);
-  }
+  0%   { box-shadow: inset 0 0 0 3px rgba(139,127,245,0.8); }
+  100% { box-shadow: inset 0 0 0 3px rgba(139,127,245,0); }
 }
 
-body.paste-flash {
-  animation: flash 0.5s ease-out forwards;
-}
+body.paste-flash #chat-box { animation: flash 0.5s ease-out forwards; }

@@ -2,7 +2,7 @@
 
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("cheatX", {
+contextBridge.exposeInMainWorld("cloakX", {
   /**
    * Register a callback for when main process triggers paste-to-chat.
    * Returns a cleanup function to remove the listener.
@@ -16,4 +16,42 @@ contextBridge.exposeInMainWorld("cheatX", {
     return () => ipcRenderer.removeListener("paste-to-chat", handler);
   },
 
+  /**
+   * Set content protection (screen recording visibility).
+   * @param {boolean} enabled
+   */
+  setContentProtection(enabled) {
+    ipcRenderer.send("set-content-protection", enabled);
+  },
+
+  /**
+   * Set always on top.
+   * @param {boolean} enabled
+   */
+  setAlwaysOnTop(enabled) {
+    ipcRenderer.send("set-always-on-top", enabled);
+  },
+
+  /**
+   * Start window drag.
+   */
+  startDrag() {
+    ipcRenderer.send("start-drag");
+  },
+
+  /**
+   * Move window by delta.
+   * @param {number} dx
+   * @param {number} dy
+   */
+  moveWindow(dx, dy) {
+    ipcRenderer.send("move-window", dx, dy);
+  },
+
+  /**
+   * Quit the application.
+   */
+  quitApp() {
+    ipcRenderer.send("quit-app");
+  },
 });
