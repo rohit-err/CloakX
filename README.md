@@ -1,4 +1,4 @@
-# Cheat-X
+# CloakX
 
 Stealth AI interview assistant. Loads ChatGPT, Grok, Claude, or Gemini in a floating window that is **completely invisible to screen recording** (Zoom, Meet, Teams, OBS).
 

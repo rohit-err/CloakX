@@ -97,6 +97,37 @@ function registerShortcuts() {
   });
 }
 
+// ── IPC handlers ──────────────────────────────────────────────────────────────
+
+ipcMain.on("set-content-protection", (event, enabled) => {
+  if (win && !win.isDestroyed()) {
+    win.setContentProtection(enabled);
+  }
+});
+
+ipcMain.on("set-always-on-top", (event, enabled) => {
+  if (win && !win.isDestroyed()) {
+    win.setAlwaysOnTop(enabled, enabled ? "screen-saver" : "normal");
+  }
+});
+
+ipcMain.on("start-drag", () => {
+  if (win && !win.isDestroyed()) {
+    win.webContents.startDrag({ file: "", icon: "" });
+  }
+});
+
+ipcMain.on("move-window", (event, dx, dy) => {
+  if (win && !win.isDestroyed()) {
+    const [x, y] = win.getPosition();
+    win.setPosition(x + dx, y + dy);
+  }
+});
+
+ipcMain.on("quit-app", () => {
+  app.quit();
+});
+
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {

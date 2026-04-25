@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * @fileoverview Renderer process for Cheat-X.
+ * @fileoverview Renderer process for CloakX.
  * Settings replaces the chat area entirely (full height swap).
  * Each AI model has its own toggle — all on by default.
  * Tabs hide via max-width transition — no layout jump.
@@ -180,9 +180,25 @@ opacitySlider.addEventListener("input", () => {
   applyOpacity(parseInt(opacitySlider.value, 10));
 });
 
+// ── Content protection toggle ─────────────────────────────────────────────────
+
+const toggleProtection = /** @type {HTMLInputElement} */ (document.getElementById("toggle-protection"));
+
+toggleProtection.addEventListener("change", () => {
+  window.cloakX.setContentProtection(toggleProtection.checked);
+});
+
+// ── Always on top toggle ──────────────────────────────────────────────────────
+
+const toggleOnTop = /** @type {HTMLInputElement} */ (document.getElementById("toggle-ontop"));
+
+toggleOnTop.addEventListener("change", () => {
+  window.cloakX.setAlwaysOnTop(toggleOnTop.checked);
+});
+
 // ── Close ─────────────────────────────────────────────────────────────────────
 
-btnClose.addEventListener("click", () => window.cheatX.quitApp());
+btnClose.addEventListener("click", () => window.cloakX.quitApp());
 
 // ── Drag handle ───────────────────────────────────────────────────────────────
 
@@ -193,7 +209,7 @@ btnClose.addEventListener("click", () => window.cheatX.quitApp());
     if (e.button !== 0) return;
     dragging = true;
     btnDrag.setAttribute("aria-grabbed", "true");
-    window.cheatX.startDrag();
+    window.cloakX.startDrag();
   });
 
   window.addEventListener("mouseup", () => {
@@ -225,7 +241,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowDown" && !chatCollapsed) { toggleCollapse(); return; }
   if (e.key === "ArrowUp"   &&  chatCollapsed) { toggleCollapse(); return; }
 
-  window.cheatX.moveWindow(dx, dy);
+  window.cloakX.moveWindow(dx, dy);
 });
 
 // ── Paste injection ───────────────────────────────────────────────────────────
@@ -258,7 +274,7 @@ function handlePaste(text) {
   setTimeout(() => document.body.classList.remove("paste-flash"), 500);
 }
 
-window.cheatX.onPasteToChat(handlePaste);
+window.cloakX.onPasteToChat(handlePaste);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
